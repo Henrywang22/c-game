@@ -143,7 +143,7 @@ void GameWindow::drawIntro(QPainter& p)
     if ((blinkTimer / 30) % 2 == 0) {
         p.setPen(QColor(255, 220, 80));
         p.setFont(QFont("Microsoft YaHei", 16, QFont::Bold));
-        p.drawText(0, 688, 1280, 30, Qt::AlignCenter, "按任意键开始游戏");
+        p.drawText(0, 688, 1280, 30, Qt::AlignCenter, "按空格键开始游戏");
     }
 }
 
@@ -281,11 +281,13 @@ void GameWindow::showResult()
 
 void GameWindow::keyPressEvent(QKeyEvent* event)
 {
-    if (showIntro) {
+if (showIntro) {
+    if (event->key() == Qt::Key_Space) {
         showIntro = false;
         update();
-        return;
     }
+    return;
+}
 
     switch (event->key()) {
     case Qt::Key_W: case Qt::Key_Up:    keyUp = true; break;

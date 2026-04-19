@@ -39,4 +39,13 @@ private:
 
     bool showIntro = true;  // 是否显示开始介绍界面
     void drawIntro(QPainter& p);
+
+    // 捕鱼系统
+    Fish* targetFish = nullptr;  // 当前瞄准的鱼
+    bool isFishing = false;      // 是否正在捕鱼
+    int fishClickCount = 0;      // 当前点击次数
+    int fishTimer = 0;           // 捕鱼计时器
+    void tryStartFishing();      // 尝试开始捕鱼
+    void updateFishing();        // 更新捕鱼状态
+    void drawFishingHUD(QPainter& p); // 画捕鱼进度条
 };

@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QFont>
 #include <QMessageBox>
+#include <algorithm>
 
 GameWindow::GameWindow(QWidget* parent)
     : QWidget(parent)
@@ -40,6 +41,8 @@ void GameWindow::gameLoop()
         gm->stage++;
         gm->bossSpawned = false;
         gm->stageClear = false;
+        isFishing = false;
+        targetFish = nullptr;
         timer->start(16);
     }
 
@@ -48,6 +51,7 @@ void GameWindow::gameLoop()
     if (keyLeft)  gm->player->move(-1, 0);
     if (keyRight) gm->player->move(1, 0);
 
+    updateFishing();
     gm->update();
     update();
 }
@@ -67,42 +71,38 @@ void GameWindow::paintEvent(QPaintEvent*)
     drawSharks(p);
     drawPlayer(p);
     drawHUD(p);
+    drawFishingHUD(p);
 }
 
 void GameWindow::drawIntro(QPainter& p)
 {
-    // 背景
     p.fillRect(0, 0, 1280, 720, QColor(20, 70, 140));
 
-    // 波纹装饰
     p.setPen(QPen(QColor(50, 130, 210), 1));
     for (int y = 80; y < 720; y += 60)
         for (int x = 0; x < 1280; x += 80)
             p.drawLine(x, y, x + 40, y);
 
-    // 标题
     p.setPen(Qt::white);
     p.setFont(QFont("Microsoft YaHei", 42, QFont::Bold));
     p.drawText(0, 60, 1280, 100, Qt::AlignCenter, "渔  途");
 
-    // 副标题
     p.setFont(QFont("Microsoft YaHei", 14));
     p.setPen(QColor(180, 220, 255));
     p.drawText(0, 150, 1280, 30, Qt::AlignCenter, "—— 一场向右的海上冒险 ——");
 
-    // 分割线
     p.setPen(QPen(QColor(100, 160, 220), 1));
     p.drawLine(200, 195, 1080, 195);
 
-    // 玩法说明内容
     QStringList lines = {
         "【目标】  驾船向右航行，闯过 5 个关卡，击败每关的 Boss 鲨鱼",
         "",
         "【移动】  WASD 或方向键控制船只上下左右移动",
         "",
-        "【捕鱼】  靠近鱼群即可自动捕捉，捕鱼可获得金币并回复体力",
-        "             黄色小鱼：价值低，吃了回复体力多",
-        "             红色小鱼：价值高，移动快，吃了回复体力少",
+        "【捕鱼】  靠近鱼群后按 F 键开始捕捉，顶部出现倒计时进度条",
+        "             在时间内连续按 F 达到要求次数即可捕获，超时鱼会逃走",
+        "             黄色普通鱼：按 3 次，3 秒时间，价值低，体力回复多",
+        "             红色稀有鱼：按 8 次，1.5 秒时间，价值高，体力回复少",
         "",
         "【战斗】  按 空格键 攻击附近的鲨鱼",
         "             普通鲨鱼（蓝色）：随时可击杀，击杀获得金币",
@@ -125,19 +125,14 @@ void GameWindow::drawIntro(QPainter& p)
 
     int startY = 210;
     for (const QString& line : lines) {
-        if (line.isEmpty()) {
-            startY += 8;
-            continue;
-        }
+        if (line.isEmpty()) { startY += 8; continue; }
         p.drawText(180, startY, line);
         startY += 22;
     }
 
-    // 底部分割线
     p.setPen(QPen(QColor(100, 160, 220), 1));
     p.drawLine(200, 678, 1080, 678);
 
-    // 按键提示闪烁
     static int blinkTimer = 0;
     blinkTimer++;
     if ((blinkTimer / 30) % 2 == 0) {
@@ -159,13 +154,21 @@ void GameWindow::drawSea(QPainter& p)
 void GameWindow::drawFish(QPainter& p)
 {
     for (auto f : gm->fish) {
-        if (f->caught) continue;
+        if (f->caught || f->escaped) continue;
+
         if (f->type == Fish::EDIBLE)
             p.setBrush(QColor(255, 220, 50));
         else
             p.setBrush(QColor(255, 80, 80));
         p.setPen(Qt::NoPen);
         p.drawEllipse(f->x - 8, f->y - 5, 16, 10);
+
+        // 靠近时显示提示
+        if (!isFishing && f->isNearPlayer(gm->player->x, gm->player->y, 80)) {
+            p.setPen(Qt::white);
+            p.setFont(QFont("Microsoft YaHei", 10));
+            p.drawText(f->x - 15, f->y - 14, "按F捕鱼");
+        }
     }
 }
 
@@ -197,9 +200,7 @@ void GameWindow::drawSharks(QPainter& p)
         p.setPen(Qt::NoPen);
         p.drawEllipse(s->x - 20, s->y - 12, 40, 24);
 
-        // 血条背景
         p.fillRect(s->x - 20, s->y - 22, 40, 6, QColor(60, 60, 60));
-        // 血条
         int barW = (int)(40.0f * s->hp / s->maxHp);
         p.fillRect(s->x - 20, s->y - 22, barW, 6, QColor(220, 50, 50));
     }
@@ -216,36 +217,105 @@ void GameWindow::drawHUD(QPainter& p)
 {
     p.fillRect(0, 0, 1280, 44, QColor(0, 0, 0, 170));
 
-    // 耐久条
     p.setFont(QFont("Microsoft YaHei", 10));
     p.setPen(Qt::white);
     p.drawText(10, 14, "耐久");
     p.fillRect(50, 6, 100, 12, QColor(60, 60, 60));
     p.fillRect(50, 6, gm->player->durability, 12, QColor(80, 200, 80));
 
-    // 体力条
     p.drawText(165, 14, "体力");
     p.fillRect(205, 6, 100, 12, QColor(60, 60, 60));
     p.fillRect(205, 6, gm->player->stamina, 12, QColor(200, 200, 50));
 
-    // 文字信息
     p.setFont(QFont("Microsoft YaHei", 11));
     p.drawText(320, 28, QString("金币: %1").arg(gm->player->coins));
     p.drawText(440, 28, QString("距离: %1 m").arg(gm->player->distance));
     p.drawText(580, 28, QString("关卡: %1 / 5").arg(gm->stage));
     p.drawText(680, 28, QString("击杀: %1").arg(gm->killCount));
 
-    // 海浪提示
     if (gm->waves.waveActive) {
         p.setPen(QColor(255, 200, 50));
         p.drawText(800, 28, QString("海浪！速度 x%1")
             .arg((double)gm->waves.speedMultiplier, 0, 'f', 1));
     }
 
-    // 右侧操作提示
     p.setPen(QColor(180, 180, 180));
     p.setFont(QFont("Microsoft YaHei", 10));
-    p.drawText(1050, 28, "空格: 攻击   P: 商店");
+    p.drawText(1020, 28, "空格:攻击  F:捕鱼  P:商店");
+}
+
+void GameWindow::drawFishingHUD(QPainter& p)
+{
+    if (!isFishing || !targetFish) return;
+
+    int barX = 490, barY = 55, barW = 300, barH = 22;
+
+    // 背景
+    p.fillRect(barX - 5, barY - 22, barW + 10, barH + 28, QColor(0, 0, 0, 180));
+
+    // 提示文字
+    p.setPen(Qt::white);
+    p.setFont(QFont("Microsoft YaHei", 11));
+    QString fishName = (targetFish->type == Fish::EDIBLE) ? "普通鱼" : "稀有鱼";
+    p.drawText(barX, barY - 4, QString("捕捉 %1  —  按F次数: %2 / %3")
+        .arg(fishName).arg(fishClickCount).arg(targetFish->catchRequired));
+
+    // 进度条背景
+    p.fillRect(barX, barY, barW, barH, QColor(50, 50, 50));
+
+    // 进度条（时间剩余）
+    float ratio = 1.0f - (float)fishTimer / targetFish->catchTimeLimit;
+    int fillW = (int)(barW * ratio);
+    QColor barColor = (targetFish->type == Fish::EDIBLE)
+        ? QColor(255, 220, 50) : QColor(255, 80, 80);
+    p.fillRect(barX, barY, fillW, barH, barColor);
+
+    // 边框
+    p.setPen(QPen(Qt::white, 1));
+    p.drawRect(barX, barY, barW, barH);
+}
+
+void GameWindow::tryStartFishing()
+{
+    if (isFishing) return;
+
+    for (auto f : gm->fish) {
+        if (f->caught || f->escaped) continue;
+        if (f->isNearPlayer(gm->player->x, gm->player->y, 80)) {
+            targetFish = f;
+            isFishing = true;
+            fishClickCount = 0;
+            fishTimer = 0;
+            return;
+        }
+    }
+}
+
+void GameWindow::updateFishing()
+{
+    if (!isFishing || !targetFish) return;
+
+    fishTimer++;
+
+    // 超时失败
+    if (fishTimer >= targetFish->catchTimeLimit) {
+        targetFish->vx *= 3;
+        targetFish->vy *= 3;
+        targetFish->escaped = true;
+        isFishing = false;
+        targetFish = nullptr;
+        return;
+    }
+
+    // 捕捉成功
+    if (fishClickCount >= targetFish->catchRequired) {
+        targetFish->caught = true;
+        gm->player->coins += targetFish->value;
+        gm->player->stamina = std::min(100,
+            gm->player->stamina + targetFish->staminaGain);
+        isFishing = false;
+        targetFish = nullptr;
+    }
 }
 
 void GameWindow::openShop()
@@ -281,19 +351,25 @@ void GameWindow::showResult()
 
 void GameWindow::keyPressEvent(QKeyEvent* event)
 {
-if (showIntro) {
-    if (event->key() == Qt::Key_Space) {
-        showIntro = false;
-        update();
+    if (showIntro) {
+        if (event->key() == Qt::Key_Space) {
+            showIntro = false;
+            update();
+        }
+        return;
     }
-    return;
-}
 
     switch (event->key()) {
     case Qt::Key_W: case Qt::Key_Up:    keyUp = true; break;
     case Qt::Key_S: case Qt::Key_Down:  keyDown = true; break;
     case Qt::Key_A: case Qt::Key_Left:  keyLeft = true; break;
     case Qt::Key_D: case Qt::Key_Right: keyRight = true; break;
+    case Qt::Key_F:
+        if (!isFishing)
+            tryStartFishing();
+        else
+            fishClickCount++;
+        break;
     case Qt::Key_Space:
         gm->attackNearestShark(30, 150);
         break;

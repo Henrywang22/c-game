@@ -1,12 +1,13 @@
 #include "GameManager.h"
 #include <cstdlib>
 #include <cmath>
+#include <algorithm>
 
 GameManager::GameManager()
 {
     player = new Player(100, 360);
     spawnObstacles();
-    spawnFish();
+    for (int i = 0; i < 5; i++) spawnFish();
 }
 
 GameManager::~GameManager()
@@ -21,20 +22,30 @@ void GameManager::update()
 {
     if (gameOver) return;
 
-    waves.update(*player);
+    // 清理鱼 — 加在最开头
+    fish.erase(std::remove_if(fish.begin(), fish.end(),
+        [](Fish* f) {
+            if (f->caught || f->escaped) { delete f; return true; }
+            return false;
+        }), fish.end());
 
+    waves.update(*player);
     for (auto f : fish)  f->update();
     for (auto s : sharks) s->update(*player);
-
-    // 更新障碍物可见性
-    for (auto o : obstacles)
-        o->isVisible(player->x, player->y);
+    for (auto o : obstacles) o->isVisible(player->x, player->y);
 
     spawnTimer++;
-    if (spawnTimer % 300 == 0) spawnFish();
-    if (spawnTimer % 600 == 0 && !bossSpawned) spawnShark();
 
-    // 每关 8 分钟 = 约 28800 帧 触发 Boss
+    // 刷鱼 — 替换原来的 if (spawnTimer % 300 == 0) spawnFish();
+    int aliveFish = 0;
+    for (auto f : fish) {
+        if (!f->caught && !f->escaped) aliveFish++;
+    }
+    if (spawnTimer % 300 == 0 && aliveFish < 5) spawnFish();
+
+    // 鲨鱼频率 — 把600改成400
+    if (spawnTimer % 400 == 0 && !bossSpawned) spawnShark();
+
     if (player->distance > stage * 2000 && !bossSpawned) {
         spawnBoss(stage);
         bossSpawned = true;
@@ -48,12 +59,10 @@ void GameManager::update()
 
 void GameManager::spawnFish()
 {
-    for (int i = 0; i < 5; i++) {
-        int x = 200 + rand() % 1000;
-        int y = 80 + rand() % 580;
-        Fish::Type t = (rand() % 3 == 0) ? Fish::RARE : Fish::EDIBLE;
-        fish.push_back(new Fish(x, y, t));
-    }
+    int x = player->x + 100 + rand() % 600;
+    int y = 80 + rand() % 580;
+    Fish::Type t = (rand() % 4 == 0) ? Fish::RARE : Fish::EDIBLE;
+    fish.push_back(new Fish(x, y, t));
 }
 
 void GameManager::spawnObstacles()
@@ -73,7 +82,7 @@ void GameManager::spawnObstacles()
 
 void GameManager::spawnShark()
 {
-    int x = player->x + 400 + rand() % 200;
+    int x = player->x + 200 + rand() % 150;
     int y = 80 + rand() % 580;
     sharks.push_back(new Shark(x, y, false));
 }
@@ -87,14 +96,6 @@ void GameManager::spawnBoss(int stage)
 
 void GameManager::checkCollisions()
 {
-    // 捕鱼：自动范围捕捉
-    for (auto f : fish) {
-        if (!f->caught && f->isCaught(player->x, player->y, 60)) {
-            f->caught = true;
-            player->coins += f->value;
-            player->stamina = std::min(100, player->stamina + f->staminaGain);
-        }
-    }
 
     // 障碍物碰撞
     for (auto o : obstacles) {
@@ -109,8 +110,15 @@ void GameManager::checkCollisions()
     // 鲨鱼碰撞
     for (auto s : sharks) {
         if (s->alive && s->collidesWithPlayer(player->x, player->y)) {
-            player->durability -= s->attack / 30;
-            if (player->durability < 0) player->durability = 0;
+            s->attackTimer++;
+            if (s->attackTimer >= 60) {
+                player->durability -= s->attack;
+                if (player->durability < 0) player->durability = 0;
+                s->attackTimer = 0;
+            }
+        }
+        else {
+            s->attackTimer = 0;
         }
     }
 

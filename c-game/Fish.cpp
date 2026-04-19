@@ -10,12 +10,16 @@ Fish::Fish(int x, int y, Type type)
         staminaGain = 20;
         vx = (rand() % 3) - 1;
         vy = (rand() % 3) - 1;
+        catchRequired = 3;   // 按3次
+        catchTimeLimit = 180; // 3秒（180帧）
     }
     else {
         value = 50 + rand() % 80;
         staminaGain = 8;
         vx = (rand() % 5) - 2;
         vy = (rand() % 5) - 2;
+        catchRequired = 8;   // 按8次
+        catchTimeLimit = 90; // 1.5秒（90帧）
     }
     if (vx == 0) vx = 1;
     if (vy == 0) vy = 1;
@@ -24,12 +28,8 @@ Fish::Fish(int x, int y, Type type)
 void Fish::update()
 {
     moveTimer++;
-    if (moveTimer % 30 == 0) {
-        vx = -vx;
-    }
-    if (moveTimer % 47 == 0) {
-        vy = -vy;
-    }
+    if (moveTimer % 30 == 0) vx = -vx;
+    if (moveTimer % 47 == 0) vy = -vy;
     x += vx;
     y += vy;
 
@@ -39,7 +39,7 @@ void Fish::update()
     if (y > 700) { y = 700;  vy = -abs(vy); }
 }
 
-bool Fish::isCaught(int px, int py, int range)
+bool Fish::isNearPlayer(int px, int py, int range)
 {
     int dx = px - x;
     int dy = py - y;

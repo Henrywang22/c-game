@@ -6,15 +6,15 @@ Shark::Shark(int x, int y, bool isBoss)
     : x(x), y(y), isBoss(isBoss)
 {
     if (isBoss) {
-        hp = maxHp = 300;
+        hp = maxHp = 500;
         attack = 20;
-        speed = 1.5f;
+        speed = 2.5f;
         dropValue = 200;
     }
     else {
-        hp = maxHp = 80;
+        hp = maxHp = 150;
         attack = 10;
-        speed = 2.0f;
+        speed = 3.5f;
         dropValue = 50;
     }
 }
@@ -23,9 +23,9 @@ void Shark::update(Player& player)
 {
     if (!alive) return;
 
-    if (isBoss && hp < maxHp / 2) {
+    if (hp < maxHp / 2) {
         state = ENRAGED;
-        speed = isBoss ? 2.2f : 3.0f;
+        speed = isBoss ? 4.0f : 5.0f;
     }
 
     float dx = player.x - x;

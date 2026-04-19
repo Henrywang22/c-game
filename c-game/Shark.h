@@ -17,6 +17,6 @@ public:
     State state = HUNT;
     bool isBoss;
     bool alive = true;
-
+    int attackTimer = 0;
     int dropValue;
 };

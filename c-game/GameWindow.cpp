@@ -156,14 +156,20 @@ void GameWindow::drawFish(QPainter& p)
     for (auto f : gm->fish) {
         if (f->caught || f->escaped) continue;
 
-        if (f->type == Fish::EDIBLE)
-            p.setBrush(QColor(255, 220, 50));
-        else
-            p.setBrush(QColor(255, 80, 80));
+        switch (f->type) {
+        case Fish::SARDINE:
+            p.setBrush(QColor(255, 220, 50));   // 黄色
+            break;
+        case Fish::TUNA:
+            p.setBrush(QColor(50, 180, 255));   // 蓝色
+            break;
+        case Fish::DEEPSEAEEL:
+            p.setBrush(QColor(180, 50, 255));   // 紫色
+            break;
+        }
         p.setPen(Qt::NoPen);
         p.drawEllipse(f->x - 8, f->y - 5, 16, 10);
 
-        // 靠近时显示提示
         if (!isFishing && f->isNearPlayer(gm->player->x, gm->player->y, 80)) {
             p.setPen(Qt::white);
             p.setFont(QFont("Microsoft YaHei", 10));
@@ -256,7 +262,12 @@ void GameWindow::drawFishingHUD(QPainter& p)
     // 提示文字
     p.setPen(Qt::white);
     p.setFont(QFont("Microsoft YaHei", 11));
-    QString fishName = (targetFish->type == Fish::EDIBLE) ? "普通鱼" : "稀有鱼";
+    QString fishName;
+    switch (targetFish->type) {
+    case Fish::SARDINE:    fishName = "沙丁鱼"; break;
+    case Fish::TUNA:       fishName = "金枪鱼"; break;
+    case Fish::DEEPSEAEEL: fishName = "深海鳗"; break;
+    }
     p.drawText(barX, barY - 4, QString("捕捉 %1  —  按F次数: %2 / %3")
         .arg(fishName).arg(fishClickCount).arg(targetFish->catchRequired));
 
@@ -266,8 +277,13 @@ void GameWindow::drawFishingHUD(QPainter& p)
     // 进度条（时间剩余）
     float ratio = 1.0f - (float)fishTimer / targetFish->catchTimeLimit;
     int fillW = (int)(barW * ratio);
-    QColor barColor = (targetFish->type == Fish::EDIBLE)
-        ? QColor(255, 220, 50) : QColor(255, 80, 80);
+    QColor barColor;
+    switch (targetFish->type) {
+    case Fish::SARDINE:    barColor = QColor(255, 220, 50); break;
+    case Fish::TUNA:       barColor = QColor(50, 180, 255); break;
+    case Fish::DEEPSEAEEL: barColor = QColor(180, 50, 255); break;
+    default:               barColor = QColor(255, 220, 50); break;
+    }
     p.fillRect(barX, barY, fillW, barH, barColor);
 
     // 边框

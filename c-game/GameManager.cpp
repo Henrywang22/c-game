@@ -61,8 +61,12 @@ void GameManager::spawnFish()
 {
     int x = player->x + 100 + rand() % 600;
     int y = 80 + rand() % 580;
-    Fish::Type t = (rand() % 4 == 0) ? Fish::RARE : Fish::EDIBLE;
-    fish.push_back(new Fish(x, y, t));
+    int r = rand() % 10;
+    Fish* f;
+    if (r < 5)      f = new Sardine(x, y);       // 50% É³¶¡Óã
+    else if (r < 8) f = new Tuna(x, y);           // 30% ½ðÇ¹Óã
+    else            f = new DeepSeaEel(x, y);      // 20% Éîº£÷©
+    fish.push_back(f);
 }
 
 void GameManager::spawnObstacles()

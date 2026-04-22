@@ -13,9 +13,15 @@ private slots:
     void buyFood();
     void buyRepairKit();
     void buyHarpoon();
+    void buyPistol();
+    void upgradeStamina();
+    void upgradeDurability();
+    void upgradeSpeed();
 
 private:
     Player* player;
     QLabel* coinLabel;
-    void updateCoinLabel();
+    QLabel* statusLabel;
+    void updateLabels();
+    bool spend(int cost);
 };

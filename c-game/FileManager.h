@@ -2,11 +2,27 @@
 #include <QString>
 #include <vector>
 
+struct SaveData {
+    int stage;
+    int distance;
+    int coins;
+    int durability;
+    int stamina;
+    int fishCaught;
+    int fishTotalValue;
+    int gameSeconds;
+    bool isDead;
+};
+
 struct HighScoreEntry {
     char name[20];
     int score;
     int distance;
     int kills;
+    int fishCaught;
+    int fishTotalValue;
+    int gameSeconds;
+    int stagesCleared;
 };
 
 struct FishEntry {
@@ -18,10 +34,14 @@ struct FishEntry {
 class FileManager {
 public:
     FileManager();
-    void saveGame(int distance, int coins, int durability, int stamina);
-    bool loadGame(int& distance, int& coins, int& durability, int& stamina);
+    void saveGame(const SaveData& data);
+    bool loadGame(SaveData& data);
+    bool hasSave();
+    void deleteSave();
     void markFishDiscovered(int fishID, const char* fishName);
     bool isFishDiscovered(int fishID);
-    void saveHighScore(const char* name, int score, int distance, int kills);
+    void saveHighScore(const char* name, int score, int distance,
+        int kills, int fishCaught, int fishTotalValue,
+        int gameSeconds, int stagesCleared);
     std::vector<HighScoreEntry> loadHighScores();
 };

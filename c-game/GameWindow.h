@@ -3,6 +3,13 @@
 #include <QTimer>
 #include <QKeyEvent>
 #include "GameManager.h"
+#include "NormalEnemy.h"
+#include "Boss.h"
+
+enum GameState {
+    STATE_MENU, STATE_INTRO, STATE_PLAYING, STATE_PAUSED,
+    STATE_SHOP, STATE_DEFEAT, STATE_VICTORY
+};
 
 class GameWindow : public QWidget
 {
@@ -22,30 +29,37 @@ private slots:
 private:
     QTimer* timer;
     GameManager* gm;
+    GameState    state = STATE_INTRO;
 
     bool keyUp = false;
     bool keyDown = false;
     bool keyLeft = false;
     bool keyRight = false;
+    bool keyShift = false;
 
+    // 捕鱼
+    Fish* targetFish = nullptr;
+    bool  isFishing = false;
+    int   fishClickCount = 0;
+    int   fishTimer = 0;
+
+    // 绘制函数
+    void drawIntro(QPainter& p);
+    void drawMenu(QPainter& p);
+    void drawGame(QPainter& p);
     void drawSea(QPainter& p);
     void drawFish(QPainter& p);
     void drawObstacles(QPainter& p);
     void drawSharks(QPainter& p);
     void drawPlayer(QPainter& p);
+    void drawWaves(QPainter& p);
     void drawHUD(QPainter& p);
+    void drawFishingHUD(QPainter& p);
+    void drawPaused(QPainter& p);
+    void drawDefeat(QPainter& p);
+    void drawVictory(QPainter& p);
+
+    void tryStartFishing();
+    void updateFishing();
     void openShop();
-    void showResult();
-
-    bool showIntro = true;  // 是否显示开始介绍界面
-    void drawIntro(QPainter& p);
-
-    // 捕鱼系统
-    Fish* targetFish = nullptr;  // 当前瞄准的鱼
-    bool isFishing = false;      // 是否正在捕鱼
-    int fishClickCount = 0;      // 当前点击次数
-    int fishTimer = 0;           // 捕鱼计时器
-    void tryStartFishing();      // 尝试开始捕鱼
-    void updateFishing();        // 更新捕鱼状态
-    void drawFishingHUD(QPainter& p); // 画捕鱼进度条
 };

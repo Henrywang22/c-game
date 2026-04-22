@@ -146,32 +146,38 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Boss.cpp" />
+    <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="FileManager.cpp" />
     <ClCompile Include="Fish.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="GameWindow.cpp" />
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="NormalEnemy.cpp" />
     <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="Player.cpp" />
-    <ClCompile Include="Shark.cpp" />
     <ClCompile Include="ShopDialog.cpp" />
     <ClCompile Include="WaveSystem.cpp" />
     <ClCompile Include="Weapon.cpp" />
+    <ClCompile Include="WeatherSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="GameWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Boss.h" />
+    <ClInclude Include="Enemy.h" />
     <ClInclude Include="FileManager.h" />
     <ClInclude Include="Fish.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="Item.h" />
+    <ClInclude Include="NormalEnemy.h" />
     <ClInclude Include="Obstacle.h" />
     <ClInclude Include="Player.h" />
-    <ClInclude Include="Shark.h" />
-    <QtMoc Include="ShopDialog.h" />
     <ClInclude Include="WaveSystem.h" />
+    <ClInclude Include="WeatherSystem.h" />
+    <QtMoc Include="ShopDialog.h" />
     <ClInclude Include="Weapon.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

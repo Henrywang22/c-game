@@ -1,25 +1,44 @@
 #include "Player.h"
+#include <algorithm>
 
 Player::Player(int startX, int startY)
     : x(startX), y(startY),
-    durability(100),
-    stamina(100),
-    coins(0),
-    distance(0)
+    durability(100), maxDurability(100),
+    stamina(100), maxStamina(100),
+    coins(0), distance(0),
+    speed(3), baseSpeed(3)
 {
 }
 
-void Player::move(int dx, int dy)
+void Player::move(int dx, int dy, int cameraX)
 {
-    x += dx * speed;
-    y += dy * speed;
+    int currentSpeed = boosting ? std::min(speed * 2, 8) : speed;
 
-    // 边界限制，不让船跑出屏幕
-    if (x < 20)   x = 20;
-    if (x > 1260) x = 1260;
-    if (y < 50)   y = 50;   // HUD 下方
+    x += dx * currentSpeed;
+    y += dy * currentSpeed;
+
+    if (boosting) {
+        stamina -= 1;
+        if (stamina < 0) stamina = 0;
+        if (stamina == 0) boosting = false;
+    }
+
+    // 左边界：随卷轴移动，无法往左超过屏幕左边
+    int leftLimit = cameraX + 20;
+    if (x < leftLimit) x = leftLimit;
+    if (x > 5000) x = 5000;
+    if (y < 50)   y = 50;
     if (y > 710)  y = 710;
 
-    // 向右移动增加距离
-    if (dx > 0) distance += speed;
+    if (dx > 0) distance += currentSpeed;
+}
+
+void Player::boost()
+{
+    if (stamina > 10) boosting = true;
+}
+
+void Player::stopBoost()
+{
+    boosting = false;
 }

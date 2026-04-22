@@ -51,6 +51,9 @@
     <ClCompile Include="GameManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="WeatherSystem.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="GameWindow.h">
@@ -79,13 +82,16 @@
     <ClInclude Include="Item.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="WaveSystem.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="FileManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="GameManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WeatherSystem.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WaveSystem.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

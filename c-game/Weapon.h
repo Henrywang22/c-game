@@ -3,17 +3,32 @@
 
 class Weapon {
 public:
-    enum WeaponType { HARPOON, CANNON, NET };
+    enum WeaponType { FISHING_ROD, NET, HARPOON, PISTOL, SHOTGUN };
 
     QString name;
-    int damage = 0;
-    int durability = 0;
-    int range = 0;
+    int damage;
+    int durability;
+    int maxDurability;
+    int range;
+    int upgradeLevel = 0;
     WeaponType type;
 
-    Weapon(WeaponType t) : type(t) {}
+    Weapon(WeaponType t) : type(t), damage(0), durability(0), maxDurability(0), range(0) {}
     virtual int fire() = 0;
+    void upgrade();
     virtual ~Weapon() {}
+};
+
+class FishingRod : public Weapon {
+public:
+    FishingRod();
+    int fire() override;
+};
+
+class FishNet : public Weapon {
+public:
+    FishNet();
+    int fire() override;
 };
 
 class Harpoon : public Weapon {
@@ -22,14 +37,14 @@ public:
     int fire() override;
 };
 
-class Cannon : public Weapon {
+class Pistol : public Weapon {
 public:
-    Cannon();
+    Pistol();
     int fire() override;
 };
 
-class Net : public Weapon {
+class Shotgun : public Weapon {
 public:
-    Net();
+    Shotgun();
     int fire() override;
 };

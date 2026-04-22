@@ -1,22 +1,19 @@
 #include "Fish.h"
+#include "Player.h"
 #include <cstdlib>
 #include <cmath>
 
 Fish::Fish(int x, int y, Type type)
-    : x(x), y(y), type(type) {
+    : x(x), y(y), type(type), maxLife(300 + rand() % 120) {
 }
 
-void Fish::update()
+void Fish::changeDirection()
 {
-    moveTimer++;
-    if (moveTimer % 30 == 0) vx = -vx;
-    if (moveTimer % 47 == 0) vy = -vy;
-    x += vx;
-    y += vy;
-    if (x < 50) { x = 50;   vx = abs(vx); }
-    if (x > 1230) { x = 1230; vx = -abs(vx); }
-    if (y < 60) { y = 60;   vy = abs(vy); }
-    if (y > 700) { y = 700;  vy = -abs(vy); }
+    float angle = (rand() % 360) * 3.14159f / 180.0f;
+    float speed = sqrt(vx * vx + vy * vy);
+    if (speed < 0.5f) speed = 1.0f;
+    vx = speed * cos(angle);
+    vy = speed * sin(angle);
 }
 
 bool Fish::isNearPlayer(int px, int py, int range)
@@ -29,45 +26,127 @@ bool Fish::isNearPlayer(int px, int py, int range)
 // CommonFish
 CommonFish::CommonFish(int x, int y, Type type) : Fish(x, y, type)
 {
-    vx = (rand() % 3) - 1;
-    vy = (rand() % 3) - 1;
-    if (vx == 0) vx = 1;
-    if (vy == 0) vy = 1;
+    float angle = (rand() % 360) * 3.14159f / 180.0f;
+    float speed = 1.0f + (rand() % 10) * 0.1f;
+    vx = speed * cos(angle);
+    vy = speed * sin(angle);
     catchRequired = 3;
     catchTimeLimit = 180;
+}
+
+void Fish::update(int playerX, int playerY)
+{
+    lifeTimer++;
+    moveTimer++;
+    if (lifeTimer >= maxLife) { escaped = true; return; }
+    x += (int)vx;
+    y += (int)vy;
+    if (x < 0 || x > 2560) { escaped = true; return; }
+    if (y < 60) { y = 60;  vy = -vy; }
+    if (y > 700) { y = 700; vy = -vy; }
+}
+
+void CommonFish::update(int playerX, int playerY)
+{
+    lifeTimer++;
+    moveTimer++;
+
+    if (lifeTimer >= maxLife) { escaped = true; return; }
+
+    if (fleeCooldown > 0) fleeCooldown--;
+
+    // 感知玩家后逃跑
+    int dx = x - playerX;
+    int dy = y - playerY;
+    float dist = sqrt((float)(dx * dx + dy * dy));
+    if (dist < 120 && fleeCooldown <= 0 && !fleeing) {
+        fleeing = true;
+        fleeCooldown = 180;
+        float len = dist > 0 ? dist : 1;
+        vx = (dx / len) * 2.5f;
+        vy = (dy / len) * 2.5f;
+    }
+    if (fleeing && fleeCooldown <= 120) fleeing = false;
+
+    if (moveTimer % 90 == 0 && !fleeing) changeDirection();
+
+    x += (int)vx;
+    y += (int)vy;
+
+    // 边界处理
+    if (x < 0 || x > 2560) { escaped = true; return; }
+    if (y < 60) { y = 60;  vy = abs(vy); }
+    if (y > 700) { y = 700; vy = -abs(vy); }
 }
 
 // RareFish
 RareFish::RareFish(int x, int y, Type type) : Fish(x, y, type)
 {
-    vx = (rand() % 5) - 2;
-    vy = (rand() % 5) - 2;
-    if (vx == 0) vx = 2;
-    if (vy == 0) vy = 2;
+    float angle = (rand() % 360) * 3.14159f / 180.0f;
+    float speed = 2.0f + (rand() % 15) * 0.1f;
+    vx = speed * cos(angle);
+    vy = speed * sin(angle);
     catchRequired = 8;
     catchTimeLimit = 90;
 }
 
-// Sardine — 沙丁鱼，价值低，数量多
+void RareFish::update(int playerX, int playerY)
+{
+    lifeTimer++;
+    moveTimer++;
+
+    if (lifeTimer >= maxLife) { escaped = true; return; }
+
+    if (fleeCooldown > 0) fleeCooldown--;
+
+    int dx = x - playerX;
+    int dy = y - playerY;
+    float dist = sqrt((float)(dx * dx + dy * dy));
+    if (dist < 150 && fleeCooldown <= 0) {
+        fleeing = true;
+        fleeCooldown = 120;
+        float len = dist > 0 ? dist : 1;
+        vx = (dx / len) * 4.0f;
+        vy = (dy / len) * 4.0f;
+    }
+    if (fleeing && fleeCooldown <= 60) fleeing = false;
+
+    if (moveTimer % 60 == 0 && !fleeing) changeDirection();
+
+    x += (int)vx;
+    y += (int)vy;
+
+    if (x < 0 || x > 2560) { escaped = true; return; }
+    if (y < 60) { y = 60;  vy = abs(vy); }
+    if (y > 700) { y = 700; vy = -abs(vy); }
+}
+
+// Sardine
 Sardine::Sardine(int x, int y) : CommonFish(x, y, SARDINE)
 {
     value = 5 + rand() % 10;
-    staminaGain = 15;
+    staminaGain = 10;
 }
-int Sardine::getEconomicValue() { return value; }
 
-// Tuna — 金枪鱼，价值中等
+// Tuna
 Tuna::Tuna(int x, int y) : CommonFish(x, y, TUNA)
 {
-    value = 20 + rand() % 30;
-    staminaGain = 25;
+    value = 25 + rand() % 20;
+    staminaGain = 20;
 }
-int Tuna::getEconomicValue() { return value; }
 
-// DeepSeaEel — 深海鳗，价值高，难捕捉
+// DeepSeaEel
 DeepSeaEel::DeepSeaEel(int x, int y) : RareFish(x, y, DEEPSEAEEL)
 {
-    value = 80 + rand() % 100;
-    staminaGain = 8;
+    value = 80 + rand() % 60;
+    staminaGain = 5;
 }
-int DeepSeaEel::getEconomicValue() { return value; }
+
+// GoldenFish
+GoldenFish::GoldenFish(int x, int y) : RareFish(x, y, SWORDFISH_FISH)
+{
+    value = 150 + rand() % 100;
+    staminaGain = 30;
+    catchRequired = 10;
+    catchTimeLimit = 75;
+}

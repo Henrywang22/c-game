@@ -7,6 +7,7 @@ Obstacle::Obstacle(int x, int y, ObstacleType type)
     : x(x), y(y), type(type)
 {
     size = 20 + rand() % 20;
+    revealRange = 250;  // ∏ƒ’‚¿Ô
 }
 
 bool Obstacle::isVisible(int px, int py)

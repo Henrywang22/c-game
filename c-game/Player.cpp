@@ -10,7 +10,7 @@ Player::Player(int startX, int startY)
 {
 }
 
-void Player::move(int dx, int dy, int cameraX)
+void Player::move(int dx, int dy)
 {
     int currentSpeed = boosting ? std::min(speed * 2, 8) : speed;
 
@@ -23,9 +23,7 @@ void Player::move(int dx, int dy, int cameraX)
         if (stamina == 0) boosting = false;
     }
 
-    // ×ó±ß½ç£ºËæ¾íÖáÒÆ¶¯£¬ÎŞ·¨Íù×ó³¬¹ıÆÁÄ»×ó±ß
-    int leftLimit = cameraX + 20;
-    if (x < leftLimit) x = leftLimit;
+    if (x < 20)   x = 20;
     if (x > 5000) x = 5000;
     if (y < 50)   y = 50;
     if (y > 710)  y = 710;

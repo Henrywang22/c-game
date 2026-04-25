@@ -30,9 +30,6 @@
     <ClCompile Include="Obstacle.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Shark.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Weapon.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -54,6 +51,15 @@
     <ClCompile Include="WeatherSystem.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Boss.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NormalEnemy.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="GameWindow.h">
@@ -73,9 +79,6 @@
     <ClInclude Include="Obstacle.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Shark.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Weapon.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -92,6 +95,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="WaveSystem.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Boss.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NormalEnemy.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

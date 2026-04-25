@@ -23,5 +23,5 @@ public:
     int fishTotalValue = 0;
     int gameSeconds = 0;
 
-    void move(int dx, int dy, int cameraX = 0);
+    bool visionReduced = false;
 };

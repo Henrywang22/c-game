@@ -48,10 +48,10 @@ void GameWindow::gameLoop()
             return;
         }
 
-        if (keyUp)    gm->player->move(0, -1, gm->cameraX);
-        if (keyDown)  gm->player->move(0, 1, gm->cameraX);
-        if (keyLeft)  gm->player->move(-1, 0, gm->cameraX);
-        if (keyRight) gm->player->move(1, 0, gm->cameraX);
+        if (keyUp)    gm->player->move(0, -1);
+        if (keyDown)  gm->player->move(0, 1);
+        if (keyLeft)  gm->player->move(-1, 0);
+        if (keyRight) gm->player->move(1, 0);
 
         if (keyShift) gm->player->boost();
         else          gm->player->stopBoost();
@@ -199,7 +199,7 @@ void GameWindow::drawFish(QPainter& p)
         p.setPen(Qt::NoPen);
         p.drawEllipse(screenX - 8, f->y - 5, 16, 10);
 
-        if (!isFishing && f->isNearPlayer(gm->player->x, gm->player->y, 80)) {
+        if (!isFishing && f->isNearPlayer(gm->player->x, gm->player->y, 120)) {
             p.setPen(Qt::white);
             p.setFont(QFont("Microsoft YaHei", 10));
             p.drawText(screenX - 15, f->y - 14, "按F捕鱼");
@@ -249,18 +249,37 @@ void GameWindow::drawWaves(QPainter& p)
 
 void GameWindow::drawSharks(QPainter& p)
 {
+    // 普通鲨鱼
     for (auto s : gm->sharks) {
         if (!s->alive) continue;
         int screenX = s->x - gm->cameraX;
         if (screenX < -50 || screenX > 1330) continue;
 
-        p.setBrush(s->isBoss ? QColor(180, 0, 0) : QColor(80, 80, 200));
+        p.setBrush(QColor(80, 80, 200));
         p.setPen(Qt::NoPen);
         p.drawEllipse(screenX - 20, s->y - 12, 40, 24);
-
         p.fillRect(screenX - 20, s->y - 22, 40, 6, QColor(60, 60, 60));
         int bw = (int)(40.0f * s->hp / s->maxHp);
         p.fillRect(screenX - 20, s->y - 22, bw, 6, QColor(220, 50, 50));
+    }
+
+    // Boss
+    if (gm->boss && gm->boss->alive) {
+        int screenX = gm->boss->x - gm->cameraX;
+        if (screenX >= -50 && screenX <= 1330) {
+            p.setBrush(gm->boss->state == Boss::PHASE2
+                ? QColor(220, 0, 0) : QColor(160, 0, 0));
+            p.setPen(Qt::NoPen);
+            p.drawEllipse(screenX - 35, gm->boss->y - 20, 70, 40);
+            p.fillRect(screenX - 35, gm->boss->y - 32, 70, 8, QColor(60, 60, 60));
+            int bw = (int)(70.0f * gm->boss->hp / gm->boss->maxHp);
+            p.fillRect(screenX - 35, gm->boss->y - 32, bw, 8, QColor(220, 50, 50));
+            if (gm->boss->state == Boss::PHASE2) {
+                p.setPen(QColor(255, 100, 100));
+                p.setFont(QFont("Microsoft YaHei", 10));
+                p.drawText(screenX - 20, gm->boss->y - 36, "狂暴！");
+            }
+        }
     }
 }
 
@@ -435,7 +454,7 @@ void GameWindow::tryStartFishing()
     if (isFishing) return;
     for (auto f : gm->fish) {
         if (f->caught || f->escaped) continue;
-        if (f->isNearPlayer(gm->player->x, gm->player->y, 80)) {
+        if (f->isNearPlayer(gm->player->x, gm->player->y, 120)) {
             targetFish = f;
             isFishing = true;
             fishClickCount = 0;
@@ -542,7 +561,7 @@ void GameWindow::keyPressEvent(QKeyEvent* event)
             else fishClickCount++;
             break;
         case Qt::Key_Space:
-            gm->attackNearestShark(30, 150);
+            gm->attackNearest(30, 150);
             break;
         case Qt::Key_P:
             timer->stop();

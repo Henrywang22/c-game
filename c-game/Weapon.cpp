@@ -10,8 +10,8 @@ void Weapon::upgrade()
 
 FishingRod::FishingRod() : Weapon(FISHING_ROD)
 {
-    name = "鱼竿"; damage = 5; maxDurability = 50;
-    durability = 50; range = 60;
+    name = "鱼竿"; damage = 5; maxDurability = 100;
+    durability = 100; range = 60;
 }
 int FishingRod::fire()
 {
@@ -19,11 +19,10 @@ int FishingRod::fire()
     durability--;
     return damage;
 }
-
 FishNet::FishNet() : Weapon(NET)
 {
-    name = "渔网"; damage = 8; maxDurability = 40;
-    durability = 40; range = 80;
+    name = "渔网"; damage = 8; maxDurability = 80;
+    durability = 80; range = 80;
 }
 int FishNet::fire()
 {
@@ -35,7 +34,7 @@ int FishNet::fire()
 Harpoon::Harpoon() : Weapon(HARPOON)
 {
     name = "鱼叉"; damage = 30; maxDurability = 25;
-    durability = 25; range = 120;
+    durability = 60; range = 120;
 }
 int Harpoon::fire()
 {
@@ -46,8 +45,8 @@ int Harpoon::fire()
 
 Pistol::Pistol() : Weapon(PISTOL)
 {
-    name = "手枪"; damage = 50; maxDurability = 15;
-    durability = 15; range = 200;
+    name = "手枪"; damage = 50; maxDurability = 30;
+    durability = 30; range = 200;
 }
 int Pistol::fire()
 {
@@ -55,11 +54,10 @@ int Pistol::fire()
     durability--;
     return damage;
 }
-
 Shotgun::Shotgun() : Weapon(SHOTGUN)
 {
-    name = "猎枪"; damage = 80; maxDurability = 10;
-    durability = 10; range = 150;
+    name = "猎枪"; damage = 80; maxDurability = 20;
+    durability = 20; range = 150;
 }
 int Shotgun::fire()
 {
